@@ -1,3 +1,5 @@
+
+# Импортируем необходимые библиотеки
 from math import *
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,6 +25,7 @@ x_list = np.arange(-1, 0.1, 0.1)
 # с определенным шагом и соответсвущие массивы
 # для функций с итерированием уже по x
 
+x_list = np.arange(-1, 0.1, 0.1)
 family_1_list = [family_1(x) for x in x_list]
 family_2_list = [family_2(x) for x in x_list]
 

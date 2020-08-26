@@ -1,19 +1,12 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu May 16 11:00:54 2019
 
-@author:  Mikhailov Mikhail
-"""
-
+# Импортируем необходимые библиотеки
 import matplotlib.pyplot as plt
 import numpy as np
 import math as mt
 from mpl_toolkits.mplot3d import axes3d
 
 # Зададим: ϵ - точность в методе Ньютона, N - количество шагов по x,
-# М - количество шагов по y , а также границы нашей сетки.
-
+# М - количество шагов по y, а также границы нашей сетки.
 epsilon = 0.00001
 N = 100
 M = 100
@@ -22,7 +15,7 @@ T_end = 1
 X_begin = 0
 X_end = -1
 
-# Соответственно, элементарные шаги.
+# Элементарные шаги.
 
 h_x = (X_end - X_begin) / (N - 1)
 h_t = (T_end - T_begin) / (M - 1)
@@ -73,7 +66,7 @@ while eps > epsilon:
             if abs(ep) > eps:
                 eps = abs(ep)
 
-            # Построим график решения.
+# Построим график решения.
 
 tm = np.linspace(T_begin, T_end, num=M)
 xn = np.linspace(X_begin, X_end, num=N)
