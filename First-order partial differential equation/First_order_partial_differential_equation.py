@@ -49,8 +49,7 @@ def df(mp1, np1):
 def f(mp1, np1):
     n = np1 - 1
     m = mp1 - 1
-    de = (y[mp1][n] - y[m][n] + y[mp1][np1] - y[m][np1]) / (2. * h_t) - (
-            F(mp1, np1) - F(mp1, n) + F(m, np1) - F(m, n)) / (2. * h_x)
+    de = (y[mp1][n] - y[m][n] + y[mp1][np1] - y[m][np1]) / (2. * h_t) - (F(mp1, np1) - F(mp1, n) + F(m, np1) - F(m, n)) / (2. * h_x)
     return (de)
 
 
@@ -70,10 +69,16 @@ while eps > epsilon:
 
 tm = np.linspace(T_begin, T_end, num=M)
 xn = np.linspace(X_begin, X_end, num=N)
+y_t = np.zeros((M, N))
+for m in range(M):
+    for n in range(N):
+        y_t[m][n] = np.cos(np.pi * xn[n]/2.0) + np.exp(-tm[m]) - 1
 X, T = np.meshgrid(xn, tm)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 surf_1 = ax.plot_wireframe(X, T, y, rstride=10, cstride=1)
+surf_1 = ax.plot_wireframe(X, T, y_t, rstride=10, cstride=1, color='r')
+
 plt.title('Решение')
 plt.xlabel('X')
 plt.ylabel('T')
@@ -81,6 +86,7 @@ plt.show()
 
 # Погрешности
 
-print('y=', y[5][5])
-print('yтеор=', mt.cos(mt.pi * xn[5] / 2) + mt.exp(-tm[5]) - 1)
-print(y[5][5] - (mt.cos(mt.pi * xn[5] / 2) + mt.exp(-tm[5]) - 1))
+print('y=', y)
+print('yтеор=', y_t)
+print(y-y_t)
+print(np.mean(y - y_t))
