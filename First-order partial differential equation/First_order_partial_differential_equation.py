@@ -13,7 +13,7 @@ M = 100
 T_begin = 0
 T_end = 1
 X_begin = 0
-X_end = -1
+X_end = 1/4
 
 # Элементарные шаги.
 
@@ -28,7 +28,7 @@ y = np.zeros((M, N))
 # Начнем заполнять его начальным и граничным значениями.
 
 for n in range(N):
-    y[0][n] = (mt.cos(mt.pi * h_x * n * 0.5))
+    y[0][n] = (mt.cos(mt.pi * h_x * n))
 
 for m in range(M):
     y[m][0] = mt.exp(-h_t * m)
@@ -37,11 +37,11 @@ for m in range(M):
 # Определим вспомогательные функции.
 
 def F(m, n):
-    return mt.log(y[m][n] + 1)
-
+    # print(y[m][n])
+    return mt.sin(y[m][n])
 
 def df(mp1, np1):
-    return (1 / (2 * h_t) - 0.5 / (h_x * (y[mp1][np1] + 1)))
+    return (1 / (2 * h_t) + 0.5 / (h_x) * mt.cos(y[mp1][np1]))
 
 
 # Разностная схема будет иметь вид.
@@ -49,7 +49,7 @@ def df(mp1, np1):
 def f(mp1, np1):
     n = np1 - 1
     m = mp1 - 1
-    de = (y[mp1][n] - y[m][n] + y[mp1][np1] - y[m][np1]) / (2. * h_t) - (F(mp1, np1) - F(mp1, n) + F(m, np1) - F(m, n)) / (2. * h_x)
+    de = (y[mp1][n] - y[m][n] + y[mp1][np1] - y[m][np1]) / (2. * h_t) + (F(mp1, np1)- F(mp1, n) + F(m, np1) - F(m, n)) / (2. * h_x)
     return (de)
 
 
@@ -60,6 +60,7 @@ while eps > epsilon:
     eps = 0
     for m in range(M)[0:M - 1]:
         for n in range(N)[0:N - 1]:
+            
             ep = f(m + 1, n + 1) / df(m + 1, n + 1)
             y[m + 1][n + 1] = y[m + 1][n + 1] - ep
             if abs(ep) > eps:
@@ -72,7 +73,7 @@ xn = np.linspace(X_begin, X_end, num=N)
 y_t = np.zeros((M, N))
 for m in range(M):
     for n in range(N):
-        y_t[m][n] = np.cos(np.pi * xn[n]/2.0) + np.exp(-tm[m]) - 1
+        y_t[m][n] = xn[n]/np.cos(np.pi * xn[n]) + np.exp(-tm[m])
 X, T = np.meshgrid(xn, tm)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
