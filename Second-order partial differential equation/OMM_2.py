@@ -11,8 +11,8 @@ H = 3 # * y in (0, H)
 N = 101 # * число узлов по x 
 M = 51 # * число узлов по y 
 
-hx = L / (N - 2) # * шаг по x 
-hy = H / (M - 2) # * шаг по y 
+hx = L / (N - 1) # * шаг по x 
+hy = H / (M - 1) # * шаг по y 
 
 # J = 2 + round(2 * T * mt.sqrt(1 / hx ** 2 + 1 / hy ** 2))
 J = 101
@@ -25,9 +25,9 @@ t = np.zeros((J, )) # * массив узлов по t
 # * Задание сетки---------------------------------------------------- 
 
 for n in range(N):
-    x[n] = n * hx - hx / 2
+    x[n] = n * hx / 2 - (n + 1) * hx
 for m in range(M):
-    y[m] = m * hy - hy / 2
+    y[m] = m * hy / 2 - (m + 1) * hy
 for j in range(J):
     t[j] = j * tau
 
@@ -38,7 +38,7 @@ u = np.zeros((M, N, J))
 for j in range(J):
     for n in range(N):
         for m in range(M):
-            u[m, n, j] = (np.exp(-t[j]) + (np.sin(t[j]) - np.cos(t[j]) + np.exp(-t[j])) / 2) * np.cos(x[n])
+            u[m, n, j] = (np.exp(-4 * t[j]) + (1 / 17) * (4 * np.sin(t[j]) - np.cos(t[j]) + np.exp(-4 * t[j]))) * np.cos(x[n]) * np.cos(y[m]/3)
 
 
 # * ----------------------------------------------------------------- 
@@ -56,10 +56,12 @@ alpha_x=np.zeros((N-1, ))
 beta_x=np.zeros((N-1, )) 
 alpha_y=np.zeros((M-1, )) 
 beta_y=np.zeros((M-1, )) 
-Ax = 1
-Cx = 2 * (1 + 4 * hx**2 / tau) 
-Ay = 1 
-Cy = 2 * (1 + 4 * hy**2 / tau)
+Ay = 2 * tau / hy**2
+By = 2 * tau / hy**2
+Ax = 2 * tau / hx**2
+Bx = 2 * tau / hx**2
+Cx = (1 + 4 * tau / hx**2) 
+Cy = (1 + 4 * tau / hy**2)
 
 for j in tqdm(range(J-1)):
     # * вычисление вспомогательной функции w ?----------------------- 
@@ -67,17 +69,17 @@ for j in tqdm(range(J-1)):
         alpha_x[0] = 1
         # * прямой ход прогонки по x--------------------------------- 
         for n in range(1, N-1):
-            F = (v[m-1, n, j] - 2 * v[m, n, j] + v[m+1, n, j]) * hx**2 / hy**2 + 2 * 4 * hx**2 / tau * v[m, n, j] + 4 * hx ** 2 * np.cos(x[n]) * np.sin(t[j] + tau / 2)
-            alpha_x[n] = Ax / (Cx - Ax * alpha_x[n-1])
+            F = 1 / 2 * (v[m-1, n, j] - 2 * v[m, n, j] + v[m+1, n, j]) * 4 * tau / hx**2 + (1 - 4 * tau / hx**2) * v[m, n, j] + 2 * tau * np.cos(x[n]) * np.sin(t[j] + tau / 2)
+            alpha_x[n] = Bx / (Cx - Ax * alpha_x[n-1])
             beta_x[n] = (F + Ax * beta_x[n-1]) / (Cx - Ax * alpha_x[n-1])
 
         # * обратный ход прогонки по x-------------------------------
         w[m, N-1] = beta_x[N-2] / (1 - alpha_x[N-2])
         for n in range(N-2, -1, -1):
-            w[m, n] = alpha_x[n] * w[m, n+1] + beta_x[n]
+            w[m, n-1] = alpha_x[n] * w[m, n] + beta_x[n]
 
-        w[m, N-1] = w[m, N-2]
-        w[m, 0] = w[m, 1]
+        # w[m, N-1] = w[m, N-2]
+        # w[m, 0] = w[m, 1]
         # * вычисление функции v на новом слое по времени------------ 
         alpha_y[0] = 1
 
@@ -85,15 +87,15 @@ for j in tqdm(range(J-1)):
         
         # * прямой ход прогонки по y--------------------------------- 
         for m in range(1, M-1):
-            F = (w[m, n-1] - 2 * w[m, n] + w[m, n+1]) * hy**2 / hx**2 + 2 * 4 * hy**2 / tau * w[m, n] + 4 * hy**2 * np.cos(x[n]) * np.sin(t[j] + tau / 2) 
-            alpha_y[m] = Ay / (Cy - Ay * alpha_y[m-1])
+            F = 1/2 * (w[m, n-1] - 2 * w[m, n] + w[m, n+1]) * 4 * tau / hy**2 + (1 - 4 * tau / hy**2) * w[m, n] + 2 * tau * np.cos(x[n]) * np.sin(t[j] + tau / 2) 
+            alpha_y[m] = By / (Cy - Ay * alpha_y[m-1])
             beta_y[m] = (F + Ay * beta_y[m-1]) / (Cy - Ay * alpha_y[m-1])
             
         # * обратный ход прогонки по y-------------------------------
         v[M-1, n, j+1] = beta_y[M-2] / (1 - alpha_y[M-2])
         err[M-1, n, j+1] = v[M-1, n, j+1] - u[M-1, n, j+1]
         for m in range(M-2, -1, -1):
-            v[m, n, j+1] = alpha_y[m] * v[m+1, n, j+1] + beta_y[m]
+            v[m-1, n, j+1] = alpha_y[m] * v[m, n, j+1] + beta_y[m]
             err[m, n, j+1] = v[m, n, j+1] - u[m, n, j+1]
 
     # * граничные условия:
@@ -118,7 +120,7 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 print(v.shape, X.shape, Y.shape, v[:, :, j_].shape)
 surf_1 = ax.plot_wireframe(X, Y, v[:, :, j_], rstride=10, cstride=1)
-surf_2 = ax.plot_wireframe(X, Y, u[:, :, j_], rstride=10, cstride=11, color='r')
+surf_2 = ax.plot_wireframe(X, Y, u[:, :, j_], rstride=10, cstride=1, color='r')
 
 plt.title('Решение')
 plt.xlabel('X')
